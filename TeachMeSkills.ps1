@@ -37,4 +37,31 @@ $Env:YC_FOLDER_ID=$(yc config get folder-id)
 
 Set-Location -Path '.\infra\terraform'
 
+@'
+provider_installation {
+  network_mirror {
+    url = "https://terraform-mirror.yandexcloud.net/"
+    include = ["registry.terraform.io/*/*"]
+  }
+  direct {
+    exclude = ["registry.terraform.io/*/*"]
+  }
+}
+
+'@.Split(10).Trim(10)|Out-File -FilePath .\terraform.rc -Encoding utf8 -Force
+#Remove-Item -Path .\terraform.rc -Force
+
+@"
+yc_token     = $Env:YC_TOKEN
+yc_cloud_id  = $Env:YC_CLOUD_ID
+yc_folder_id = $Env:YC_FOLDER_ID
+
+"@.Split(13).Trim(10)|Out-File -FilePath .\terraform.tfvars -Encoding utf8 -Force
+Remove-Item -Path .\terraform.tfvars -Force
+
+& .\terraform.exe -version
+
+& .\terraform.exe init
+& .\terraform.exe validate
+
 & .\terraform.exe plan
