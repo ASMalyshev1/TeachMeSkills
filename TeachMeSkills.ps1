@@ -1,6 +1,8 @@
 ﻿Clear-Host
 Set-Location $PSScriptRoot
 
+$PSDefaultParameterValues['*:Encoding'] = 'Default'
+
 $gl = (Get-Location).Path
 
 # Установить Yandex Cloud (CLI) если не установлен
@@ -52,16 +54,37 @@ provider_installation {
 #Remove-Item -Path .\terraform.rc -Force
 
 @"
-yc_token     = $Env:YC_TOKEN
-yc_cloud_id  = $Env:YC_CLOUD_ID
-yc_folder_id = $Env:YC_FOLDER_ID
-
+yc_token     = "$Env:YC_TOKEN"
+yc_cloud_id  = "$Env:YC_CLOUD_ID"
+yc_folder_id = "$Env:YC_FOLDER_ID"
+public_zone  = "asmalyshev.ru."
 "@.Split(13).Trim(10)|Out-File -FilePath .\terraform.tfvars -Encoding utf8 -Force
-Remove-Item -Path .\terraform.tfvars -Force
+
+<#
+$Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
+$content = @"
+yc_token     = "$Env:YC_TOKEN"
+yc_cloud_id  = "$Env:YC_CLOUD_ID"
+yc_folder_id = "$Env:YC_FOLDER_ID"
+public_zone  = "asmalyshev.ru."
+"@.Split(13).Trim(10)
+[System.IO.File]::WriteAllText($(Join-Path (Get-Location).Path "terraform.tfvars"), $content, $Utf8NoBomEncoding)
+
+#[System.IO.File]::WriteAllText("terraform.tfvars", $terraformVars, [System.Text.UTF8Encoding]::new($false))
+#Remove-Item -Path .\terraform.tfvars -Force
+#>
 
 & .\terraform.exe -version
 
 & .\terraform.exe init
 & .\terraform.exe validate
 
+if(-not (Test-Path -Path "$env:USERPROFILE\.ssh")){
+    Start-Process cmd -ArgumentList '/c ssh-keygen -t rsa -b 4096 -C "mail@asmalyshev.ru"'
+}
+
 & .\terraform.exe plan
+& .\terraform.exe apply
+<#
+& .\terraform.exe destroy
+#>
