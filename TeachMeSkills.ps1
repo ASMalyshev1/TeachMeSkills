@@ -18,8 +18,8 @@ if($(yc config list) -eq '{}'){
     Start-Process cmd -ArgumentList "/c yc init"
 }
 yc config list
-yc vpc network list
-yc vpc network list --format yaml
+#yc vpc network list
+#yc vpc network list --format yaml
 
 # Создайте авторизованный ключ для сервисного аккаунта
 #yc iam key create --output key.json --service-account-name my-service-account
@@ -27,8 +27,16 @@ yc vpc network list --format yaml
 
 # Создаем сервисного аккаунта для terraform
 $saName = 'sa-terraform'
-yc iam service-account create --name $saName
-$saData = yc iam service-accounts list --format json|ConvertFrom-Json|Where-Object {$_.Name -eq $saName}
+function getSaInfo {
+Param(
+    [string]$saName = 'sa-terraform'
+)
+    yc iam service-accounts list --format json|ConvertFrom-Json|Where-Object {$_.Name -eq $saName}
+}
+if(-not $(getSaInfo -saName $saName)){
+    yc iam service-account create --name $saName
+}
+$saData = getSaInfo -saName $saName
 
 # Назначть сервисному аккаунту роль на ресурс:
 yc resource-manager folder add-access-binding $($saData.folder_id) --role editor --subject serviceAccount:$($saData.id)
@@ -50,7 +58,7 @@ provider_installation {
   }
 }
 
-'@.Split(10).Trim(10)|Out-File -FilePath .\terraform.rc -Encoding utf8 -Force
+'@.Split(10).Trim(10)|Out-File -FilePath .\terraform.rc -Force
 #Remove-Item -Path .\terraform.rc -Force
 
 @"
@@ -58,7 +66,7 @@ yc_token     = "$Env:YC_TOKEN"
 yc_cloud_id  = "$Env:YC_CLOUD_ID"
 yc_folder_id = "$Env:YC_FOLDER_ID"
 public_zone  = "asmalyshev.ru."
-"@.Split(13).Trim(10)|Out-File -FilePath .\terraform.tfvars -Encoding utf8 -Force
+"@.Split(13).Trim(10)|Out-File -FilePath .\terraform.tfvars -Force
 
 <#
 $Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
