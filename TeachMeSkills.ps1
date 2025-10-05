@@ -62,10 +62,10 @@ provider_installation {
 #Remove-Item -Path .\terraform.rc -Force
 
 @"
-yc_token     = "$Env:YC_TOKEN"
-yc_cloud_id  = "$Env:YC_CLOUD_ID"
-yc_folder_id = "$Env:YC_FOLDER_ID"
-public_zone  = "asmalyshev.ru."
+yc_token  = "$Env:YC_TOKEN"
+cloud_id  = "$Env:YC_CLOUD_ID"
+folder_id = "$Env:YC_FOLDER_ID"
+zone      = "asmalyshev.ru."
 "@.Split(13).Trim(10)|Out-File -FilePath .\terraform.tfvars -Force
 
 <#
