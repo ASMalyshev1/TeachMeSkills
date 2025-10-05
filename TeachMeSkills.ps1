@@ -85,7 +85,9 @@ public_zone  = "asmalyshev.ru."
 & .\terraform.exe -version
 
 & .\terraform.exe init
+& .\terraform.exe fmt
 & .\terraform.exe validate
+return
 
 if(-not (Test-Path -Path "$env:USERPROFILE\.ssh")){
     Start-Process cmd -ArgumentList '/c ssh-keygen -t rsa -b 4096 -C "mail@asmalyshev.ru"'
