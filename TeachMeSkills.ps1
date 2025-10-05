@@ -61,11 +61,16 @@ provider_installation {
 '@.Split(10).Trim(10)|Out-File -FilePath .\terraform.rc -Force
 #Remove-Item -Path .\terraform.rc -Force
 
+if(-not (Test-Path -Path "$env:USERPROFILE\.ssh")){
+    Start-Process cmd -ArgumentList '/c ssh-keygen -t rsa -b 4096 -C "asmalyshev"'
+}
+
 @"
-yc_token  = "$Env:YC_TOKEN"
-cloud_id  = "$Env:YC_CLOUD_ID"
-folder_id = "$Env:YC_FOLDER_ID"
-zone      = "asmalyshev.ru."
+ssh_pub      = "$(Get-Content -Path C:\Users\asmalyshev\.ssh\id_rsa.pub)"
+yc_token     = "$Env:YC_TOKEN"
+cloud_id     = "$Env:YC_CLOUD_ID"
+folder_id    = "$Env:YC_FOLDER_ID"
+default_zone = "ru-central1-d"
 "@.Split(13).Trim(10)|Out-File -FilePath .\terraform.tfvars -Force
 
 <#
@@ -89,12 +94,14 @@ public_zone  = "asmalyshev.ru."
 & .\terraform.exe validate
 return
 
-if(-not (Test-Path -Path "$env:USERPROFILE\.ssh")){
-    Start-Process cmd -ArgumentList '/c ssh-keygen -t rsa -b 4096 -C "mail@asmalyshev.ru"'
-}
-
 & .\terraform.exe plan
 & .\terraform.exe apply
 <#
 & .\terraform.exe destroy
 #>
+
+# wsl
+Get-Location $gl
+Set-Location -Path '.\infra\ansible'
+ansible-playbook -i hosts.yml playbook.yml
+Test-NetConnection -ComputerName gitlab.asmalyshev.ru -Port 22
