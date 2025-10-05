@@ -178,3 +178,12 @@ resource "yandex_dns_recordset" "pub_gitlab" {
   ttl     = 120
   data    = [yandex_compute_instance.ci_gitlab.network_interface[0].nat_ip_address]
 }
+
+resource "yandex_dns_recordset" "pub_elk" {
+  zone_id = yandex_dns_zone.public.id
+  name    = "logs.${yandex_dns_zone.public.zone}"
+  type    = "A"
+  ttl     = 120
+  data    = [yandex_compute_instance.logs_elk.network_interface[0].nat_ip_address]
+}
+
