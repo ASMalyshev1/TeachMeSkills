@@ -176,4 +176,5 @@ resource "yandex_dns_recordset" "pub_gitlab" {
   name    = "${var.name_gitlab}.${yandex_dns_zone.public.zone}"
   type    = "A"
   ttl     = 120
-  data    = [yandex_compute_instance.ci_gitlab.network
+  data    = [yandex_compute_instance.ci_gitlab.network_interface[0].nat_ip_address]
+}
