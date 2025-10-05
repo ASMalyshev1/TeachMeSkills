@@ -57,6 +57,7 @@ resource "yandex_compute_instance" "web_portal" {
     nat       = true
   }
   metadata = {
+	ssh-keys = "asmalyshev:${var.ssh_pub}"
     enable-oslogin = true
   }
 }
@@ -86,6 +87,7 @@ resource "yandex_compute_instance" "ci_gitlab" {
     nat       = true
   }
   metadata = {
+	ssh-keys = "asmalyshev:${var.ssh_pub}"
     enable-oslogin = true
   }
 }
@@ -115,6 +117,7 @@ resource "yandex_compute_instance" "mon_grafana" {
     nat       = true
   }
   metadata = {
+	ssh-keys = "asmalyshev:${var.ssh_pub}"
     enable-oslogin = true
   }
 }
@@ -144,6 +147,7 @@ resource "yandex_compute_instance" "logs_elk" {
     nat       = true
   }
   metadata = {
+	ssh-keys = "asmalyshev:${var.ssh_pub}"
     enable-oslogin = true
   }
 }
