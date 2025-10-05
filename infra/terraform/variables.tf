@@ -29,10 +29,10 @@ variable "public_zone" {
 variable "ssh_pub" {
   type        = string
   description = "Содержимое публичного SSH ключа"
+  default     = "~/.ssh/id_rsa.pub"
 }
 
 # Имена субдоменов
 variable "name_portal" { default = "www" }
 variable "name_grafana" { default = "grafana" }
 variable "name_gitlab" { default = "gitlab" }
-# убрали jira
