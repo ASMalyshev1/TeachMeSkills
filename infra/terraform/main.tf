@@ -14,12 +14,11 @@ provider "yandex" {
   zone      = var.default_zone
 }
 
-# Получаем образ Ubuntu (можно изменить family)
+# Получаем образ Ubuntu
 data "yandex_compute_image" "ubuntu" {
   family = "ubuntu-2404-lts-oslogin"
 }
 
-# Сеть и подсеть
 resource "yandex_vpc_network" "default" {
   name = "default-net"
 }
@@ -38,8 +37,8 @@ resource "yandex_compute_instance" "web_portal" {
   zone        = var.default_zone
 
   resources {
-    cores  = 1
-    memory = 1
+    cores  = 2
+    memory = 2
   }
 
   scheduling_policy {
@@ -62,15 +61,17 @@ resource "yandex_compute_instance" "web_portal" {
   }
 }
 
-# VM GitLab (репозиторий и CI/CD)
+# VM GitLab (CI/CD)
 resource "yandex_compute_instance" "ci_gitlab" {
   name        = "gitlab"
   platform_id = "standard-v2"
   zone        = var.default_zone
+
   resources {
     cores  = 2
     memory = 4
   }
+
   scheduling_policy {
     preemptible = true
   }
@@ -94,10 +95,12 @@ resource "yandex_compute_instance" "mon_grafana" {
   name        = "grafana"
   platform_id = "standard-v2"
   zone        = var.default_zone
+
   resources {
-    cores  = 1
+    cores  = 2
     memory = 2
   }
+
   scheduling_policy {
     preemptible = true
   }
@@ -121,10 +124,12 @@ resource "yandex_compute_instance" "logs_elk" {
   name        = "elk"
   platform_id = "standard-v2"
   zone        = var.default_zone
+
   resources {
-    cores  = 1
+    cores  = 2
     memory = 2
   }
+
   scheduling_policy {
     preemptible = true
   }
@@ -171,13 +176,4 @@ resource "yandex_dns_recordset" "pub_gitlab" {
   name    = "${var.name_gitlab}.${yandex_dns_zone.public.zone}"
   type    = "A"
   ttl     = 120
-  data    = [yandex_compute_instance.ci_gitlab.network_interface[0].nat_ip_address]
-}
-
-resource "yandex_dns_recordset" "pub_elk" {
-  zone_id = yandex_dns_zone.public.id
-  name    = "logs.${yandex_dns_zone.public.zone}"
-  type    = "A"
-  ttl     = 120
-  data    = [yandex_compute_instance.logs_elk.network_interface[0].nat_ip_address]
-}
+  data    = [yandex_compute_instance.ci_gitlab.network
