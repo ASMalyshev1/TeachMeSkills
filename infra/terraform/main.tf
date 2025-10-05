@@ -14,12 +14,12 @@ provider "yandex" {
   zone      = var.default_zone
 }
 
-# Получаем образ Ubuntu для VM
+# Получаем образ Ubuntu (можно изменить family)
 data "yandex_compute_image" "ubuntu" {
   family = "ubuntu-2404-lts-oslogin"
 }
 
-# Сеть и подсеть для всех VM
+# Сеть и подсеть
 resource "yandex_vpc_network" "default" {
   name = "default-net"
 }
@@ -31,50 +31,109 @@ resource "yandex_vpc_subnet" "default" {
   v4_cidr_blocks = ["10.0.0.0/24"]
 }
 
+# VM Portal (основной сайт)
 resource "yandex_compute_instance" "web_portal" {
-  name        = "web_portal"
+  name        = "web-portal"
   platform_id = "standard-v2"
   zone        = var.default_zone
 
   resources {
-    cores  = 2
-    memory = 2
+    cores  = 1
+    memory = 1
   }
 
+  scheduling_policy {
+    preemptible = true
+  }
+
+  boot_disk {
+    initialize_params {
+      image_id = data.yandex_compute_image.ubuntu.id
+      size     = 10
+    }
+  }
+
+  network_interface {
+    subnet_id = yandex_vpc_subnet.default.id
+    nat       = true
+  }
+  metadata = {
+    enable-oslogin = true
+  }
+}
+
+# VM GitLab (репозиторий и CI/CD)
+resource "yandex_compute_instance" "ci_gitlab" {
+  name        = "gitlab"
+  platform_id = "standard-v2"
+  zone        = var.default_zone
+  resources {
+    cores  = 2
+    memory = 4
+  }
+  scheduling_policy {
+    preemptible = true
+  }
+  boot_disk {
+    initialize_params {
+      image_id = data.yandex_compute_image.ubuntu.id
+      size     = 16
+    }
+  }
+  network_interface {
+    subnet_id = yandex_vpc_subnet.default.id
+    nat       = true
+  }
+  metadata = {
+    enable-oslogin = true
+  }
+}
+
+# VM Grafana (мониторинг)
+resource "yandex_compute_instance" "mon_grafana" {
+  name        = "grafana"
+  platform_id = "standard-v2"
+  zone        = var.default_zone
+  resources {
+    cores  = 1
+    memory = 2
+  }
+  scheduling_policy {
+    preemptible = true
+  }
+  boot_disk {
+    initialize_params {
+      image_id = data.yandex_compute_image.ubuntu.id
+      size     = 10
+    }
+  }
+  network_interface {
+    subnet_id = yandex_vpc_subnet.default.id
+    nat       = true
+  }
+  metadata = {
+    enable-oslogin = true
+  }
+}
+
+# VM ELK/Loki (логирование)
+resource "yandex_compute_instance" "logs_elk" {
+  name        = "elk"
+  platform_id = "standard-v2"
+  zone        = var.default_zone
+  resources {
+    cores  = 1
+    memory = 2
+  }
+  scheduling_policy {
+    preemptible = true
+  }
   boot_disk {
     initialize_params {
       image_id = data.yandex_compute_image.ubuntu.id
       size     = 12
     }
   }
-
-  network_interface {
-    subnet_id = yandex_vpc_subnet.default.id
-    nat       = true
-  }
-
-  metadata = {
-    enable-oslogin = true
-  }
-}
-
-resource "yandex_compute_instance" "ci_gitlab" {
-  name        = "ci_gitlab"
-  platform_id = "standard-v2"
-  zone        = var.default_zone
-
-  resources {
-    cores  = 2
-    memory = 6
-  }
-
-  boot_disk {
-    initialize_params {
-      image_id = data.yandex_compute_image.ubuntu.id
-      size     = 18
-    }
-  }
-
   network_interface {
     subnet_id = yandex_vpc_subnet.default.id
     nat       = true
@@ -84,62 +143,10 @@ resource "yandex_compute_instance" "ci_gitlab" {
   }
 }
 
-resource "yandex_compute_instance" "mon_grafana" {
-  name        = "mon_grafana"
-  platform_id = "standard-v2"
-  zone        = var.default_zone
-
-  resources {
-    cores  = 2
-    memory = 4
-  }
-
-  boot_disk {
-    initialize_params {
-      image_id = data.yandex_compute_image.ubuntu.id
-      size     = 16
-    }
-  }
-
-  network_interface {
-    subnet_id = yandex_vpc_subnet.default.id
-    nat       = true
-  }
-  metadata = {
-    enable-oslogin = true
-  }
-}
-
-resource "yandex_compute_instance" "logs_elk" {
-  name        = "logs_elk"
-  platform_id = "standard-v2"
-  zone        = var.default_zone
-
-  resources {
-    cores  = 2
-    memory = 4
-  }
-
-  boot_disk {
-    initialize_params {
-      image_id = data.yandex_compute_image.ubuntu.id
-      size     = 16
-    }
-  }
-
-  network_interface {
-    subnet_id = yandex_vpc_subnet.default.id
-    nat       = true
-  }
-  metadata = {
-    enable-oslogin = true
-  }
-}
-
-# DNS: zone
+# DNS-зона
 resource "yandex_dns_zone" "public" {
   name   = "asmalyshev-public-zone"
-  zone   = var.public_zone # "asmalyshev.ru."
+  zone   = var.public_zone
   public = true
 }
 
