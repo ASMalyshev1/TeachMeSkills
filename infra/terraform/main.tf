@@ -14,7 +14,22 @@ provider "yandex" {
   zone      = var.default_zone
 }
 
-# ... Network (оставить как есть)
+# Получаем образ Ubuntu для VM
+data "yandex_compute_image" "ubuntu" {
+  family = "ubuntu-2404-lts-oslogin"
+}
+
+# Сеть и подсеть для всех VM
+resource "yandex_vpc_network" "default" {
+  name = "default-net"
+}
+
+resource "yandex_vpc_subnet" "default" {
+  name           = "default-subnet"
+  zone           = var.default_zone
+  network_id     = yandex_vpc_network.default.id
+  v4_cidr_blocks = ["10.0.0.0/24"]
+}
 
 resource "yandex_compute_instance" "web_portal" {
   name        = "web_portal"
