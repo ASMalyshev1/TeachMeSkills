@@ -32,7 +32,7 @@ variable "ssh_pub" {
 }
 
 # Имена субдоменов
-variable "name_portal"  { default = "www" }
+variable "name_portal" { default = "www" }
 variable "name_grafana" { default = "grafana" }
-variable "name_gitlab"  { default = "gitlab" }
+variable "name_gitlab" { default = "gitlab" }
 # убрали jira
