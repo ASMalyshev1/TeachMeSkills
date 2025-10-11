@@ -64,9 +64,8 @@ provider_installation {
 if(-not (Test-Path -Path "$env:USERPROFILE\.ssh")){
     Start-Process cmd -ArgumentList '/c ssh-keygen -t rsa -b 4096 -C "asmalyshev"'
 }
-
+#ssh_pub      = "$(Get-Content -Path C:\Users\asmalyshev\.ssh\id_rsa.pub)"
 @"
-ssh_pub      = "$(Get-Content -Path C:\Users\asmalyshev\.ssh\id_rsa.pub)"
 yc_token     = "$Env:YC_TOKEN"
 cloud_id     = "$Env:YC_CLOUD_ID"
 folder_id    = "$Env:YC_FOLDER_ID"
