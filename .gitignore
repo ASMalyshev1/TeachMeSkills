@@ -1,3 +1,4 @@
 infra/yc/OAuth.txt
 promt.txt
 infra/terraform/terraform.exe
+infra/terraform/terraform.tfvars
